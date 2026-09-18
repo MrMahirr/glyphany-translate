@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Input } from "@/shared/ui/Input";
 import { Button } from "@/shared/ui/Button";
 import { Icon } from "@/shared/ui/Icon";
@@ -86,12 +87,12 @@ export function LoginForm() {
             Remember 30 days
           </span>
         </label>
-        <a
-          href="#"
-          className="text-label-lg text-primary hover:underline"
+        <Link
+          href="/forgot-password"
+          className="text-label-md text-primary hover:underline hover:text-primary-container transition-colors"
         >
           Forgot password?
-        </a>
+        </Link>
       </div>
 
       {/* Submit */}
