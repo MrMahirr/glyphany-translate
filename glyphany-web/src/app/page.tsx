@@ -12,6 +12,7 @@ import { LanguageSelector } from "@/features/select-language/ui/LanguageSelector
 import { Button } from "@/shared/ui/Button";
 import { Icon } from "@/shared/ui/Icon";
 import { uploadAndTranslate } from "@/features/upload-pdf/api/uploadApi";
+import { toast } from "react-hot-toast";
 
 /**
  * Main Landing Page.
@@ -38,12 +39,12 @@ export default function LandingPage() {
       // with the ID or show a success state.
       // router.push(`/translations/${response.id}`);
       
-      alert("Translation started! Check console for response.");
+      toast.success("Translation started! Check console for response.");
       console.log(response);
 
     } catch (error) {
       console.error("Translation upload failed", error);
-      alert("Translation failed to start. Please try again.");
+      toast.error("Translation failed to start. Please try again.");
     } finally {
       setIsTranslating(false);
     }

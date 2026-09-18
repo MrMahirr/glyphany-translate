@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 import { Icon } from "@/shared/ui/Icon";
 import { TechnicalDetailsAccordion } from "./TechnicalDetailsAccordion";
 import { RecommendedFixes } from "./RecommendedFixes";
@@ -30,7 +31,7 @@ export function TranslationFailedView({
     // Simulate retry action
     setTimeout(() => {
       setIsRetrying(false);
-      alert("Retrying engine... In real app this would trigger API call.");
+      toast.error("Retrying engine... In real app this would trigger API call.");
     }, 1800);
   };
 

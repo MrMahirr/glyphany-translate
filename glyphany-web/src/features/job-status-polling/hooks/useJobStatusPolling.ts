@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getJobStatus, cancelJob } from "../api/jobApi";
 import type { JobStatusResponse, JobStatus } from "@/domain/job/jobDomains";
+import { toast } from "react-hot-toast";
 
 interface UseJobStatusPollingProps {
   jobId: string;
@@ -68,7 +69,7 @@ export function useJobStatusPolling({ jobId, intervalMs = 2000 }: UseJobStatusPo
       }
     } catch (err: any) {
       console.error("Failed to cancel job", err);
-      alert("Failed to cancel translation. Please try again.");
+      toast.error("Failed to cancel translation. Please try again.");
     }
   };
 

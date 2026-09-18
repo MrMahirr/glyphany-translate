@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "../store/authStore";
 import * as authApi from "../api/authApi";
+import { toast } from "react-hot-toast";
 import type { LoginPayload, RegisterPayload } from "../../../domain/auth/authDomains";
 
 /**
@@ -25,6 +26,7 @@ export function useAuth() {
         router.push("/translations");
       } catch (error) {
         setLoading(false);
+        toast.error("Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
         throw error;
       }
     },
@@ -40,6 +42,7 @@ export function useAuth() {
         router.push("/translations");
       } catch (error) {
         setLoading(false);
+        toast.error("Kayıt işlemi başarısız. Lütfen tekrar deneyin.");
         throw error;
       }
     },

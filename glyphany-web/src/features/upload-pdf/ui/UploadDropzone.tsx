@@ -3,6 +3,7 @@
 import React, { useRef, useState } from "react";
 import { cn } from "@/shared/lib/cn";
 import { Icon } from "@/shared/ui/Icon";
+import { toast } from "react-hot-toast";
 
 export interface UploadDropzoneProps {
   onFileSelect: (file: File | null) => void;
@@ -59,10 +60,10 @@ export function UploadDropzone({ onFileSelect, selectedFile }: UploadDropzonePro
       if (file.size <= 100 * 1024 * 1024) { // 100MB
         onFileSelect(file);
       } else {
-        alert("File size exceeds 100MB limit.");
+        toast.error("File size exceeds 100MB limit.");
       }
     } else {
-      alert("Invalid file format. Please upload PDF, EPUB, DOCX, or PPTX.");
+      toast.error("Invalid file format. Please upload PDF, EPUB, DOCX, or PPTX.");
     }
   };
 

@@ -15,6 +15,8 @@ export const metadata: Metadata = {
     "Precision neural document & publication translation with sub-pixel layout preservation.",
 };
 
+import { ToastProvider } from "@/shared/providers/ToastProvider";
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${plusJakartaSans.variable} h-full`}>
@@ -24,7 +26,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ToastProvider />
+      </body>
     </html>
   );
 }

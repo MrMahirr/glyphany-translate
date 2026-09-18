@@ -9,6 +9,8 @@ import { useActiveSection } from "@/shared/hooks/useActiveSection";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Dropdown, DropdownItem, DropdownDivider } from "@/shared/ui/Dropdown";
 import { cn } from "@/shared/lib/cn";
+import { AppAlert } from "@/shared/lib/sweetAlert";
+import { toast } from "react-hot-toast";
 
 const NAV_LINKS = [
   { label: "Features", href: "/#features", id: "features" },
@@ -37,6 +39,23 @@ export function LandingHeader() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    setIsMobileMenuOpen(false);
+    const result = await AppAlert.fire({
+      title: "Log out",
+      text: "Are you sure you want to end your session?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, log out",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      logout();
+      toast.success("Logged out successfully");
+    }
+  };
 
   const getLinkClasses = (link: { href: string; id: string }) => {
     let isActive = false;
@@ -138,7 +157,7 @@ export function LandingHeader() {
                 
                 <DropdownDivider />
                 
-                <DropdownItem onClick={() => logout()} icon={<Icon name="logout" size={18} />} className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20">
+                <DropdownItem onClick={handleLogout} icon={<Icon name="logout" size={18} />} className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20">
                   Log out
                 </DropdownItem>
               </Dropdown>
@@ -237,10 +256,7 @@ export function LandingHeader() {
                 </Link>
                 <button 
                   type="button"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    logout();
-                  }}
+                  onClick={handleLogout}
                   className="w-full text-left flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl"
                 >
                   <Icon name="logout" size={20} />
