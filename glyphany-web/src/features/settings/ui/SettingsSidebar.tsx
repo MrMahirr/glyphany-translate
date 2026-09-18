@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Icon } from "@/shared/ui/Icon";
 
 export function SettingsSidebar() {
@@ -89,10 +90,10 @@ export function SettingsSidebar() {
         </div>
 
         <div className="pt-2 flex flex-col gap-2">
-          <a href="#" className="inline-flex items-center justify-between text-primary font-label-lg text-label-lg hover:underline">
+          <Link href="/enterprise" className="inline-flex items-center justify-between text-primary font-label-lg text-label-lg hover:underline">
             <span>Need custom LLM endpoints?</span>
             <Icon name="arrow_forward" size={16} />
-          </a>
+          </Link>
           <p className="font-body-sm text-body-sm text-on-surface-variant">Contact enterprise engineering for private VPC deployments and SOC2 compliance.</p>
         </div>
       </div>

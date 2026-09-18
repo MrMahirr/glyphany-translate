@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Icon } from "@/shared/ui/Icon";
 
 export function UsageMonitor() {
@@ -70,7 +71,9 @@ export function UsageMonitor() {
           <Icon name="info" size={16} className="text-primary" />
           <span>Quota resets on Nov 1, 2024 at 00:00 UTC. Unused pages do not rollover.</span>
         </div>
-        <a href="#" className="hidden sm:inline font-label-md text-label-md text-primary hover:underline">View Page History</a>
+        <Link href="/settings/history" className="hidden sm:inline font-label-md text-label-md text-primary hover:underline">
+          View Page History
+        </Link>
       </div>
     </section>
   );
