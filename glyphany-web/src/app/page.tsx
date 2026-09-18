@@ -62,7 +62,7 @@ export default function LandingPage() {
           <HeroSection />
 
           {/* MAIN INTERACTIVE WORKSPACE (2-Column Desktop Grid) */}
-          <section className="max-w-7xl mx-auto px-margin py-6">
+          <section id="features" className="max-w-7xl mx-auto px-margin py-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
               
               {/* Left Column (Upload & Controls) */}
