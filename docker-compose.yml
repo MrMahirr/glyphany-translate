@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: pdf_translator
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports: ["5432:5432"]
+    volumes: ["pg_data:/var/lib/postgresql/data"]
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports: ["9000:9000", "9001:9001"]
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin12345
+    volumes: ["minio_data:/data"]
+
+  glyphany-api:
+    build: ./glyphany-api
+    ports: ["3000:3000"]
+    depends_on: [postgres, redis, minio]
+    env_file: .env
+
+  glyphany-worker:
+    build: ./glyphany-worker
+    depends_on: [postgres, redis, minio]
+    env_file: .env
+
+  glyphany-web:
+    build: ./glyphany-web
+    ports: ["3001:3000"]
+    depends_on: [glyphany-api]
+
+volumes:
+  pg_data:
+  minio_data:

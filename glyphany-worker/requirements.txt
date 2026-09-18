@@ -1,0 +1,4 @@
+redis==5.*
+psycopg2-binary==2.*
+boto3==1.*
+python-dotenv==1.*
