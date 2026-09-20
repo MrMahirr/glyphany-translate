@@ -1,6 +1,8 @@
 import { Injectable, OnModuleDestroy, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool, PoolClient } from 'pg';
+import * as fs from 'fs';
+import * as path from 'path';
 import { IDatabaseClient, IDatabaseService } from './interfaces/database.interface';
 
 @Injectable()
@@ -32,6 +34,9 @@ export class DatabaseService implements IDatabaseService, OnModuleInit, OnModule
       const client = await this.pool.connect();
       client.release();
       this.logger.log('Successfully connected to the database.');
+      
+      // Run migrations
+      await this.runMigrations();
     } catch (error) {
       this.logger.error('Error connecting to the database', error);
       throw error;
@@ -43,6 +48,55 @@ export class DatabaseService implements IDatabaseService, OnModuleInit, OnModule
       await this.pool.end();
       this.logger.log('Database pool connection closed.');
     }
+  }
+
+  private async runMigrations() {
+    this.logger.log('Starting migration runner...');
+    
+    // 1. Create migration_history table if not exists
+    await this.execute(`
+      CREATE TABLE IF NOT EXISTS migration_history (
+        id SERIAL PRIMARY KEY,
+        filename VARCHAR(255) UNIQUE NOT NULL,
+        applied_at TIMESTAMPTZ DEFAULT now()
+      );
+    `);
+
+    // 2. Read migration files
+    const migrationsDir = path.join(process.cwd(), 'src', 'database', 'migrations');
+    
+    if (!fs.existsSync(migrationsDir)) {
+      this.logger.warn(`Migrations directory not found at ${migrationsDir}`);
+      return;
+    }
+
+    const files = fs.readdirSync(migrationsDir)
+      .filter(f => f.endsWith('.sql'))
+      .sort(); // ensures 001, 002 order
+
+    // 3. Get applied migrations
+    const appliedRows = await this.query(`SELECT filename FROM migration_history`);
+    const appliedMigrations = new Set(appliedRows.map(row => row.filename));
+
+    for (const file of files) {
+      if (!appliedMigrations.has(file)) {
+        this.logger.log(`Applying migration: ${file}`);
+        const filePath = path.join(migrationsDir, file);
+        const sql = fs.readFileSync(filePath, 'utf8');
+
+        // 4. Run inside transaction
+        await this.transaction(async (dbClient) => {
+          await dbClient.execute(sql);
+          await dbClient.execute(
+            `INSERT INTO migration_history (filename) VALUES ($1)`,
+            [file]
+          );
+        });
+        this.logger.log(`Successfully applied migration: ${file}`);
+      }
+    }
+    
+    this.logger.log('Migration runner finished.');
   }
 
   async query<T = any>(text: string, params?: any[]): Promise<T[]> {

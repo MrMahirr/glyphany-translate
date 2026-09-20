@@ -38,6 +38,26 @@ services:
     ports: ["3001:3000"]
     depends_on: [glyphany-api]
 
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    ports:
+      - "5000:5000"
+    environment:
+      - LT_LOAD_ONLY=en,tr,de
+    volumes:
+      - libretranslate_data:/home/libretranslate/.local
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
 volumes:
   pg_data:
   minio_data:
+  libretranslate_data:
+  ollama_data:

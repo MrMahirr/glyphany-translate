@@ -13,7 +13,7 @@ export const AuthApiMethod = {
 } as const;
 
 export const TranslationApiMethod = {
-  CREATE: "/api/v1/translations",
+  CREATE: "/translations",
   SEARCH: "/translations/search",
   DETAIL: "/translations",
   DELETE: "/translations",
@@ -21,8 +21,8 @@ export const TranslationApiMethod = {
 } as const;
 
 export const JobApiMethod = {
-  GET_STATUS: "/api/v1/jobs/{id}/status",
-  CANCEL: "/api/v1/jobs/{id}/cancel",
+  GET_STATUS: "/jobs/{id}/status",
+  CANCEL: "/jobs/{id}/cancel",
 } as const;
 
 export const SettingsApiMethod = {
