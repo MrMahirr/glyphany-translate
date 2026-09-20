@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { LandingHeader } from "@/widgets/landing-header/LandingHeader";
 import { Footer } from "@/widgets/footer/Footer";
@@ -8,56 +8,31 @@ import { ProgressControlBar } from "@/features/job-status-polling/ui/ProgressCon
 import { DocumentMetadataCard } from "@/features/job-status-polling/ui/DocumentMetadataCard";
 import { TranslationStepper } from "@/features/job-status-polling/ui/TranslationStepper";
 import { Icon } from "@/shared/ui/Icon";
-// import { useJobStatusPolling } from "@/features/job-status-polling/hooks/useJobStatusPolling";
+import { useJobStatusPolling } from "@/features/job-status-polling/hooks/useJobStatusPolling";
 import { cn } from "@/shared/lib/cn";
 import type { JobStatusResponse } from "@/domain/job/jobDomains";
 
-export default function ProgressPage({ params }: { params: { jobId: string } }) {
+export default function ProgressPage({ params }: { params: Promise<{ jobId: string }> }) {
   const router = useRouter();
-  const { jobId } = params;
+  const { jobId } = use(params);
 
-  // In a real application, you would use the useJobStatusPolling hook to fetch the data.
-  // For the frontend UI implementation phase, we mock the real-time data changes 
-  // via a local interval effect to demonstrate the UI states exactly like the design.
-  
-  // const { jobData, cancelJob } = useJobStatusPolling({ jobId });
-
-  const [mockStatus, setMockStatus] = useState<JobStatusResponse>({
-    id: jobId,
-    metadata: {
-      fileName: "Quantum_Computing_Principles_v3.pdf",
-      fileSize: 14.2 * 1024 * 1024,
-      pageCount: 48,
-      sourceLang: "English",
-      targetLang: "Spanish (Español)",
-      engineVersion: "Neural Engine v4.2"
-    },
-    progress: {
-      status: "translating",
-      percentage: 68,
-      estimatedTimeRemainingSec: 25,
-      currentPage: 31,
-      totalPages: 48,
-      currentSpeedPagesPerSec: 1.8
-    },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  });
+  // Real-time polling via API
+  const { jobData, cancelJob } = useJobStatusPolling({ jobId });
 
   const [isNotified, setIsNotified] = useState(false);
 
   const handleCancel = () => {
     if (window.confirm("Are you sure you want to halt this document translation? Extracted layers will be discarded.")) {
-      // In real app: cancelJob();
-      setMockStatus(prev => ({
-        ...prev,
-        progress: { ...prev.progress, status: "canceled" }
-      }));
+      cancelJob();
       router.back();
     }
   };
 
-  const jobData = mockStatus; // Assigning mocked state to our component's data model
+  useEffect(() => {
+    if (jobData?.progress.status === "completed") {
+      router.push(`/translate/${jobId}/reader`);
+    }
+  }, [jobData?.progress.status, jobId, router]);
 
   if (!jobData) {
     return (
@@ -93,6 +68,18 @@ export default function ProgressPage({ params }: { params: { jobId: string } }) 
                 metadata={jobData.metadata} 
                 status={jobData.progress.status} 
               />
+
+              {jobData.progress.status === 'failed' && (
+                <div className="w-full bg-error/10 rounded-xl p-5 border border-error/30 flex flex-col items-start gap-2 shadow-sm">
+                  <div className="flex items-center gap-2 text-error">
+                    <Icon name="error" size={24} />
+                    <h3 className="font-label-lg font-bold">Translation Failed</h3>
+                  </div>
+                  <p className="font-body-md text-on-surface-variant">
+                    {jobData.progress.errorMessage || "An unexpected error occurred during translation processing."}
+                  </p>
+                </div>
+              )}
 
               <TranslationStepper progress={jobData.progress} />
 

@@ -102,8 +102,8 @@ export class JobsService {
   async getJobStatus(jobId: string, userId: string) {
     const rows = await this.db.query(`
       SELECT id, status, percentage, estimated_time_remaining_sec, current_page, page_count,
-             original_file_name, file_size_bytes, source_lang, target_lang, engine_version,
-             created_at, updated_at
+             original_file_name, file_size_bytes, detected_source_lang as source_lang, target_lang, engine_version,
+             created_at, updated_at, error_message
       FROM jobs WHERE id = $1 AND user_id = $2
     `, [jobId, userId]);
 
@@ -121,6 +121,7 @@ export class JobsService {
         estimatedTimeRemainingSec: job.estimated_time_remaining_sec,
         currentPage: job.current_page,
         totalPages: job.page_count,
+        errorMessage: job.error_message,
       },
       metadata: {
         fileName: job.original_file_name,
@@ -138,5 +139,57 @@ export class JobsService {
   async cancelJob(jobId: string, userId: string) {
     await this.db.query(`UPDATE jobs SET status = 'canceled' WHERE id = $1 AND user_id = $2 AND status NOT IN ('completed', 'failed')`, [jobId, userId]);
     return { success: true };
+  }
+
+  async getTranslationContent(jobId: string, userId: string) {
+    const rows = await this.db.query(`
+      SELECT id, original_file_name, target_lang, detected_source_lang, page_count, status, output_json_path 
+      FROM jobs WHERE id = $1 AND user_id = $2
+    `, [jobId, userId]);
+
+    if (rows.length === 0) {
+      throw new NotFoundException(`Job with id ${jobId} not found`);
+    }
+
+    const job = rows[0];
+    if (job.status !== 'completed' || !job.output_json_path) {
+      throw new NotFoundException(`Translation content for job ${jobId} is not ready yet`);
+    }
+
+    try {
+      const contentStr = await this.storage.getFileContent(this.bucketName, job.output_json_path);
+      const rawPages = JSON.parse(contentStr);
+
+      const formattedPages = rawPages.map((pageData: any) => {
+        const sourceNodes = (pageData.original_blocks || []).map((text: string, idx: number) => ({
+          id: `${pageData.page}-${idx}`,
+          type: 'paragraph',
+          content: text
+        }));
+        
+        const targetNodes = (pageData.translated_blocks || []).map((text: string, idx: number) => ({
+          id: `${pageData.page}-${idx}`,
+          type: 'paragraph',
+          content: text
+        }));
+
+        return {
+          pageNumber: pageData.page,
+          sourceNodes,
+          targetNodes
+        };
+      });
+
+      return {
+        id: job.id,
+        title: job.original_file_name,
+        totalPages: job.page_count || rawPages.length,
+        sourceLang: job.detected_source_lang || 'auto',
+        targetLang: job.target_lang,
+        pages: formattedPages
+      };
+    } catch (err) {
+      throw new NotFoundException(`Could not read translation content from storage`);
+    }
   }
 }

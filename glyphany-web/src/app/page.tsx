@@ -37,7 +37,7 @@ export default function LandingPage() {
       
       // In a real app, we would redirect to a translation status/workspace page
       // with the ID or show a success state.
-      // router.push(`/translations/${response.id}`);
+      router.push(`/translate/${response.id}/progress`);
       
       toast.success("Translation started! Check console for response.");
       console.log(response);

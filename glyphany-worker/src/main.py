@@ -54,8 +54,8 @@ def main():
                         from src.services.database import get_db_connection
                         
                         conn = get_db_connection()
-                        with conn.cursor() as cur:
-                            cur.execute("SELECT user_id, original_file_name FROM jobs WHERE id = %s", (job_id,))
+                        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                            cur.execute("SELECT user_id, source_pdf_path, original_file_name, target_lang FROM jobs WHERE id = %s", (job_id,))
                             job_row = cur.fetchone()
                         conn.close()
                         
@@ -63,15 +63,17 @@ def main():
                             raise ValueError(f"Job {job_id} not found in database.")
                             
                         user_id = job_row["user_id"]
+                        source_pdf_path = job_row["source_pdf_path"]
+                        target_lang = job_row["target_lang"] or "TR"
                         
                         # Paths
-                        s3_input_key = f"uploads/{user_id}/{job_id}.pdf"
+                        s3_input_key = source_pdf_path
                         local_input_path = f"/tmp/{job_id}_input.pdf"
                         local_output_pdf = f"/tmp/{job_id}_output.pdf"
                         local_output_json = f"/tmp/{job_id}_output.json"
                         
-                        s3_output_pdf_key = f"translations/{user_id}/{job_id}.pdf"
-                        s3_output_json_key = f"translations/{user_id}/{job_id}.json"
+                        s3_output_pdf_key = f"translations/{job_id}.pdf"
+                        s3_output_json_key = f"translations/{job_id}.json"
                         
                         # Step: Downloading from S3
                         update_job_progress(job_id, percentage=10, current_step="downloading_file", estimated_time=115)
@@ -85,7 +87,7 @@ def main():
                             output_pdf_path=local_output_pdf,
                             output_json_path=local_output_json,
                             source_lang="EN", # Should ideally come from job request
-                            target_lang="TR"
+                            target_lang=target_lang
                         )
                         
                         # Step: Uploading to S3
@@ -117,6 +119,7 @@ def main():
                     except Exception as job_err:
                         logger.error(f"Error processing job {job_id}: {job_err}")
                         update_job_failed(job_id, str(job_err))
+        except Exception as e:
             logger.error(f"Error in worker loop: {e}")
             time.sleep(5) # Backoff on error
 

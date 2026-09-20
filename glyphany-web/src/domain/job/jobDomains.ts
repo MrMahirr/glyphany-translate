@@ -20,6 +20,7 @@ export interface JobProgress {
   currentPage?: number;
   totalPages?: number;
   currentSpeedPagesPerSec?: number;
+  errorMessage?: string;
 }
 
 export interface JobMetadata {

@@ -34,4 +34,12 @@ export class TranslationsController {
   ) {
     return this.jobsService.listTranslations(user.id, page, limit);
   }
+
+  @Get(':id/content')
+  async getTranslationContent(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.jobsService.getTranslationContent(id, user.id);
+  }
 }

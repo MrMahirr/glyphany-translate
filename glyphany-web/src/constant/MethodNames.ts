@@ -14,6 +14,7 @@ export const AuthApiMethod = {
 
 export const TranslationApiMethod = {
   CREATE: "/translations",
+  LIST: "/translations",
   SEARCH: "/translations/search",
   DETAIL: "/translations",
   DELETE: "/translations",
