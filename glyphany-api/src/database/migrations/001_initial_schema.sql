@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TABLE jobs (
+CREATE TABLE IF NOT EXISTS jobs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     status TEXT DEFAULT 'queued',   -- queued | processing | done | failed
     source_pdf_path TEXT,
@@ -13,7 +13,7 @@ CREATE TABLE jobs (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE page_paragraph_map (
+CREATE TABLE IF NOT EXISTS page_paragraph_map (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     job_id UUID REFERENCES jobs(id),
     page_number INT,

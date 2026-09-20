@@ -1,5 +1,5 @@
 -- Users tablosu
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
@@ -13,19 +13,19 @@ CREATE TABLE users (
 
 -- Jobs tablosuna user_id ve ek alanlar ekleme
 ALTER TABLE jobs 
-    ADD COLUMN user_id UUID REFERENCES users(id),
-    ADD COLUMN original_file_name TEXT,
-    ADD COLUMN file_size_bytes BIGINT,
-    ADD COLUMN page_count INT,
-    ADD COLUMN percentage INT DEFAULT 0,
-    ADD COLUMN current_page INT,
-    ADD COLUMN current_step TEXT,  -- 'detecting_language' | 'analyzing_layout' | 'translating' | 'finalizing'
-    ADD COLUMN estimated_time_remaining_sec INT,
-    ADD COLUMN engine_version TEXT DEFAULT 'v1.0',
-    ADD COLUMN completed_at TIMESTAMPTZ;
+    ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id),
+    ADD COLUMN IF NOT EXISTS original_file_name TEXT,
+    ADD COLUMN IF NOT EXISTS file_size_bytes BIGINT,
+    ADD COLUMN IF NOT EXISTS page_count INT,
+    ADD COLUMN IF NOT EXISTS percentage INT DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS current_page INT,
+    ADD COLUMN IF NOT EXISTS current_step TEXT,
+    ADD COLUMN IF NOT EXISTS estimated_time_remaining_sec INT,
+    ADD COLUMN IF NOT EXISTS engine_version TEXT DEFAULT 'v1.0',
+    ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ;
 
 -- Çeviri cache tablosu
-CREATE TABLE translation_cache (
+CREATE TABLE IF NOT EXISTS translation_cache (
     source_hash TEXT PRIMARY KEY,
     source_lang TEXT,
     target_lang TEXT,
@@ -36,7 +36,7 @@ CREATE TABLE translation_cache (
 );
 
 -- User settings tablosu
-CREATE TABLE user_settings (
+CREATE TABLE IF NOT EXISTS user_settings (
     user_id UUID PRIMARY KEY REFERENCES users(id),
     default_target_lang TEXT DEFAULT 'TR',
     default_engine TEXT DEFAULT 'auto',    -- 'auto' | 'deepl' | 'claude'
@@ -51,7 +51,7 @@ CREATE TABLE user_settings (
 );
 
 -- Indexler
-CREATE INDEX idx_jobs_user_id ON jobs(user_id);
-CREATE INDEX idx_jobs_status ON jobs(status);
-CREATE INDEX idx_jobs_created_at ON jobs(created_at DESC);
-CREATE INDEX idx_translation_cache_langs ON translation_cache(source_lang, target_lang);
+CREATE INDEX IF NOT EXISTS idx_jobs_user_id ON jobs(user_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
+CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_translation_cache_langs ON translation_cache(source_lang, target_lang);

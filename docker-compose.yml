@@ -24,7 +24,7 @@ services:
 
   glyphany-api:
     build: ./glyphany-api
-    ports: ["3000:3000"]
+    ports: ["3100:3100"]
     depends_on: [postgres, redis, minio]
     env_file: .env
 
@@ -35,7 +35,7 @@ services:
 
   glyphany-web:
     build: ./glyphany-web
-    ports: ["3001:3000"]
+    ports: ["3000:3000"]
     depends_on: [glyphany-api]
 
   libretranslate:
