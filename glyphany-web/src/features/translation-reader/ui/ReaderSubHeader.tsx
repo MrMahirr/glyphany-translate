@@ -9,9 +9,10 @@ import type { ReaderViewMode } from "@/domain/translation-reader/readerDomains";
 interface ReaderSubHeaderProps {
   viewMode: ReaderViewMode;
   onViewModeChange: (mode: ReaderViewMode) => void;
+  downloadUrl?: string;
 }
 
-export function ReaderSubHeader({ viewMode, onViewModeChange }: ReaderSubHeaderProps) {
+export function ReaderSubHeader({ viewMode, onViewModeChange, downloadUrl }: ReaderSubHeaderProps) {
   return (
     <section className="sticky top-16 z-30 w-full bg-surface-container-lowest/95 backdrop-blur-md shadow-sm px-gutter py-2.5">
       <div className="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-space-sm">
@@ -91,10 +92,17 @@ export function ReaderSubHeader({ viewMode, onViewModeChange }: ReaderSubHeaderP
             <button type="button" title="Full Screen View" className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors flex items-center justify-center cursor-pointer">
               <Icon name="fullscreen" size={19} />
             </button>
-            <button type="button" className="flex items-center gap-1.5 bg-primary-container text-on-primary px-3 py-1.5 rounded-lg font-label-lg text-label-lg hover:bg-primary shadow-sm transition-all cursor-pointer">
-              <Icon name="picture_as_pdf" size={18} />
-              <span className="hidden md:inline">Download Translated</span>
-            </button>
+            {downloadUrl ? (
+              <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-primary-container text-on-primary px-3 py-1.5 rounded-lg font-label-lg text-label-lg hover:bg-primary shadow-sm transition-all cursor-pointer">
+                <Icon name="picture_as_pdf" size={18} />
+                <span className="hidden md:inline">Download Translated</span>
+              </a>
+            ) : (
+              <button type="button" disabled className="flex items-center gap-1.5 bg-surface-container-high text-on-surface-variant px-3 py-1.5 rounded-lg font-label-lg text-label-lg opacity-50 cursor-not-allowed">
+                <Icon name="picture_as_pdf" size={18} />
+                <span className="hidden md:inline">Download Translated</span>
+              </button>
+            )}
           </div>
         </div>
 

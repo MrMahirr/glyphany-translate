@@ -61,10 +61,10 @@ export default function ReaderPage({ params }: { params: Promise<{ jobId: string
       <LandingHeader />
 
       <main className="flex-1 w-full pt-16 flex flex-col">
-        {/* Document Sub-Header & Synchronized Control Bar */}
         <ReaderSubHeader 
           viewMode={viewMode} 
           onViewModeChange={toggleViewMode} 
+          downloadUrl={documentData.downloadUrl}
         />
 
         {/* Main Dual-Pane Workspace Canvas */}

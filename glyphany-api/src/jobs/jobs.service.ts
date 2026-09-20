@@ -143,7 +143,7 @@ export class JobsService {
 
   async getTranslationContent(jobId: string, userId: string) {
     const rows = await this.db.query(`
-      SELECT id, original_file_name, target_lang, detected_source_lang, page_count, status, output_json_path 
+      SELECT id, original_file_name, target_lang, detected_source_lang, page_count, status, output_json_path, output_pdf_path 
       FROM jobs WHERE id = $1 AND user_id = $2
     `, [jobId, userId]);
 
@@ -154,6 +154,11 @@ export class JobsService {
     const job = rows[0];
     if (job.status !== 'completed' || !job.output_json_path) {
       throw new NotFoundException(`Translation content for job ${jobId} is not ready yet`);
+    }
+
+    let downloadUrl = undefined;
+    if (job.output_pdf_path) {
+      downloadUrl = await this.storage.getPresignedUrl(this.bucketName, job.output_pdf_path);
     }
 
     try {
@@ -186,6 +191,7 @@ export class JobsService {
         totalPages: job.page_count || rawPages.length,
         sourceLang: job.detected_source_lang || 'auto',
         targetLang: job.target_lang,
+        downloadUrl,
         pages: formattedPages
       };
     } catch (err) {

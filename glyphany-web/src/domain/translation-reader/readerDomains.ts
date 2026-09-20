@@ -20,5 +20,6 @@ export interface ReaderDocument {
   totalPages: number;
   sourceLang: string;
   targetLang: string;
+  downloadUrl?: string;
   pages: DocumentPage[];
 }

@@ -81,7 +81,7 @@ def main():
                         
                         # Step: Processing and Translating
                         # By default we pass 'auto' -> 'TR' since we haven't fetched settings
-                        page_count = process_pdf(
+                        page_count, detected_source_lang = process_pdf(
                             job_id=job_id,
                             input_path=local_input_path,
                             output_pdf_path=local_output_pdf,
@@ -103,7 +103,7 @@ def main():
                             job_id, 
                             output_pdf_path=s3_output_pdf_key,
                             output_json_path=s3_output_json_key,
-                            detected_source_lang="EN",
+                            detected_source_lang=detected_source_lang,
                             page_count=page_count
                         )
                         logger.info(f"Job {job_id}: Processing completed successfully.")
