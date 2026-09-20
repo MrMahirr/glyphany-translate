@@ -77,3 +77,45 @@ def run_translation_pipeline(
             )
 
     return translated_blocks
+
+
+def translate_single_block(
+    text: str,
+    source_lang: str,
+    target_lang: str
+) -> str:
+    """
+    Translates a single text block using the translation pipeline.
+    Used for re-translating individual blocks from the editor.
+    """
+    if not text.strip():
+        return text
+
+    libre_engine = create_engine("libre")
+    ollama_engine = create_engine("ollama")
+
+    engine_type = select_engine(text)
+    engine = libre_engine if engine_type == "libre" else ollama_engine
+
+    try:
+        translated_text = engine.translate(
+            text=text,
+            source_lang=source_lang,
+            target_lang=target_lang,
+            context=None
+        )
+        return translated_text
+    except Exception as e:
+        logger.error(f"Single block translation failed with {engine_type}: {e}")
+        if engine_type == "libre":
+            try:
+                return ollama_engine.translate(
+                    text=text,
+                    source_lang=source_lang,
+                    target_lang=target_lang,
+                    context=None
+                )
+            except Exception as fallback_err:
+                logger.error(f"Fallback also failed: {fallback_err}")
+                return text
+        return text

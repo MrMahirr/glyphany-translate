@@ -10,9 +10,12 @@ interface ReaderSubHeaderProps {
   viewMode: ReaderViewMode;
   onViewModeChange: (mode: ReaderViewMode) => void;
   downloadUrl?: string;
+  hasUnsavedChanges?: boolean;
+  onRegenerate?: () => void;
+  isRegenerating?: boolean;
 }
 
-export function ReaderSubHeader({ viewMode, onViewModeChange, downloadUrl }: ReaderSubHeaderProps) {
+export function ReaderSubHeader({ viewMode, onViewModeChange, downloadUrl, hasUnsavedChanges, onRegenerate, isRegenerating }: ReaderSubHeaderProps) {
   return (
     <section className="sticky top-16 z-30 w-full bg-surface-container-lowest/95 backdrop-blur-md shadow-sm px-gutter py-2.5">
       <div className="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-space-sm">
@@ -92,6 +95,25 @@ export function ReaderSubHeader({ viewMode, onViewModeChange, downloadUrl }: Rea
             <button type="button" title="Full Screen View" className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors flex items-center justify-center cursor-pointer">
               <Icon name="fullscreen" size={19} />
             </button>
+
+            {/* Regenerate PDF Button - visible when user has edited blocks */}
+            {hasUnsavedChanges && (
+              <button
+                type="button"
+                onClick={onRegenerate}
+                disabled={isRegenerating}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-label-lg text-label-lg shadow-sm transition-all cursor-pointer",
+                  isRegenerating
+                    ? "bg-surface-container-high text-on-surface-variant opacity-60 cursor-wait"
+                    : "bg-tertiary text-on-tertiary hover:opacity-90 animate-pulse"
+                )}
+              >
+                <Icon name="refresh" size={18} className={isRegenerating ? "animate-spin" : ""} />
+                <span className="hidden md:inline">{isRegenerating ? "Rebuilding..." : "Regenerate PDF"}</span>
+              </button>
+            )}
+
             {downloadUrl ? (
               <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-primary-container text-on-primary px-3 py-1.5 rounded-lg font-label-lg text-label-lg hover:bg-primary shadow-sm transition-all cursor-pointer">
                 <Icon name="picture_as_pdf" size={18} />

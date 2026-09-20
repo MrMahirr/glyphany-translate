@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, UseInterceptors, UploadedFile, Body, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Param, UseInterceptors, UploadedFile, Body, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, Query, UseGuards, Delete } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -50,5 +50,31 @@ export class TranslationsController {
     @CurrentUser() user: any,
   ) {
     return this.jobsService.updateAndRegenerate(id, user.id, pages);
+  }
+
+  @Post(':id/retranslate-block')
+  async retranslateBlock(
+    @Param('id') id: string,
+    @Body('text') text: string,
+    @Body('sourceLang') sourceLang: string,
+    @Body('targetLang') targetLang: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.jobsService.retranslateBlock(id, user.id, text, sourceLang, targetLang);
+  }
+  @Post(':id/cancel')
+  async cancelJob(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.jobsService.cancelJob(id, user.id);
+  }
+
+  @Delete(':id')
+  async deleteJob(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.jobsService.deleteJob(id, user.id);
   }
 }

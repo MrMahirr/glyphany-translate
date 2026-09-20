@@ -10,9 +10,11 @@ interface TranslationTableProps {
   totalCount: number;
   storageUsedMb: number;
   storageTotalMb: number;
+  onCancel?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function TranslationTable({ data, totalCount, storageUsedMb, storageTotalMb }: TranslationTableProps) {
+export function TranslationTable({ data, totalCount, storageUsedMb, storageTotalMb, onCancel, onDelete }: TranslationTableProps) {
   return (
     <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
@@ -29,7 +31,12 @@ export function TranslationTable({ data, totalCount, storageUsedMb, storageTotal
           </thead>
           <tbody className="divide-y-0">
             {data.map((item) => (
-              <TranslationTableRow key={item.id} item={item} />
+              <TranslationTableRow 
+                key={item.id} 
+                item={item} 
+                onCancel={onCancel}
+                onDelete={onDelete}
+              />
             ))}
           </tbody>
         </table>

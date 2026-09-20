@@ -12,7 +12,7 @@ import { TranslationEmptyState } from "@/features/translation-list/ui/Translatio
 import { useTranslationList } from "@/features/translation-list/hooks/useTranslationList";
 
 export default function TranslationsPage() {
-  const { data, isEmpty, toggleEmptyState, totalCount, storageUsedMb, storageTotalMb } = useTranslationList();
+  const { data, isEmpty, toggleEmptyState, totalCount, storageUsedMb, storageTotalMb, cancelJob, deleteJob } = useTranslationList();
 
   return (
     <div className="flex flex-col min-h-screen bg-surface">
@@ -72,6 +72,8 @@ export default function TranslationsPage() {
                 totalCount={totalCount}
                 storageUsedMb={storageUsedMb}
                 storageTotalMb={storageTotalMb}
+                onCancel={cancelJob}
+                onDelete={deleteJob}
               />
             )}
 

@@ -8,9 +8,11 @@ import type { TranslationListItem } from "@/entities/translation-page/translatio
 
 interface TranslationTableRowProps {
   item: TranslationListItem;
+  onCancel?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function TranslationTableRow({ item }: TranslationTableRowProps) {
+export function TranslationTableRow({ item, onCancel, onDelete }: TranslationTableRowProps) {
   
   // Render the Document Preview Icon based on category or status
   const renderPreviewIcon = () => {
@@ -91,7 +93,7 @@ export function TranslationTableRow({ item }: TranslationTableRowProps) {
                 {item.category}
               </span>
               <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
-              {item.badges.map((badge, idx) => (
+              {item.badges?.map((badge, idx) => (
                 <span 
                   key={idx} 
                   className={cn(
@@ -124,8 +126,8 @@ export function TranslationTableRow({ item }: TranslationTableRowProps) {
       {/* Pages & Size Column */}
       <td className="py-4 px-space-md">
         <div className="flex flex-col">
-          <span className="font-body-md text-body-md text-on-surface font-medium">{item.pageCount} pages</span>
-          <span className="font-body-sm text-body-sm text-on-surface-variant">{item.fileSizeMb.toFixed(1)} MB</span>
+          <span className="font-body-md text-body-md text-on-surface font-medium">{item.pageCount || 0} pages</span>
+          <span className="font-body-sm text-body-sm text-on-surface-variant">{(item.fileSizeMb || 0).toFixed(1)} MB</span>
         </div>
       </td>
 
@@ -183,21 +185,31 @@ export function TranslationTableRow({ item }: TranslationTableRowProps) {
           
           {item.status === "completed" && (
             <>
-              <button title="Open in Split-Pane Reader" className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors cursor-pointer">
+              <Link href={`/translate/${item.id}/reader`} title="Open in Split-Pane Reader" className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center">
                 <Icon name="visibility" size={20} />
-              </button>
-              <button title="Download" className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors cursor-pointer">
-                <Icon name="download" size={20} />
-              </button>
+              </Link>
+              {item.downloadUrl ? (
+                <a href={item.downloadUrl} target="_blank" rel="noopener noreferrer" title="Download" className="p-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center">
+                  <Icon name="download" size={20} />
+                </a>
+              ) : (
+                <button title="Download not available" disabled className="p-1.5 text-on-surface-variant opacity-50 cursor-not-allowed">
+                  <Icon name="download" size={20} />
+                </button>
+              )}
             </>
           )}
 
           {item.status === "processing" && (
             <>
-              <button title="View Live Pipeline Stream" className="p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors cursor-pointer">
+              <Link href={`/translate/${item.id}/progress`} title="View Live Pipeline Stream" className="p-1.5 text-primary hover:bg-primary-fixed rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center">
                 <Icon name="sync" size={20} />
-              </button>
-              <button title="Cancel Job" className="p-1.5 text-outline-variant hover:text-error hover:bg-rose-50 rounded-lg transition-colors cursor-pointer">
+              </Link>
+              <button 
+                title="Cancel Job" 
+                onClick={() => onCancel && onCancel(item.id)}
+                className="p-1.5 text-outline-variant hover:text-error hover:bg-rose-50 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+              >
                 <Icon name="cancel" size={20} />
               </button>
             </>
@@ -213,7 +225,11 @@ export function TranslationTableRow({ item }: TranslationTableRowProps) {
           )}
 
           {(item.status === "completed" || item.status === "failed") && (
-            <button title={item.status === "failed" ? "Dismiss Job" : "Delete"} className="p-1.5 text-on-surface-variant hover:text-error hover:bg-rose-50 rounded-lg transition-colors cursor-pointer">
+            <button 
+              title={item.status === "failed" ? "Dismiss Job" : "Delete"} 
+              onClick={() => onDelete && onDelete(item.id)}
+              className="p-1.5 text-on-surface-variant hover:text-error hover:bg-rose-50 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+            >
               <Icon name="delete" size={20} />
             </button>
           )}

@@ -35,6 +35,29 @@ export function useTranslationList() {
 
   const toggleEmptyState = () => setIsEmpty(!isEmpty);
 
+  const cancelJob = async (jobId: string) => {
+    try {
+      await apiClient.post(`/translations/${jobId}/cancel`);
+      toast.success("Job canceled.");
+      fetchTranslations();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to cancel job.");
+    }
+  };
+
+  const deleteJob = async (jobId: string) => {
+    try {
+      // Assuming a DELETE endpoint exists or will exist
+      await apiClient.delete(`/translations/${jobId}`);
+      toast.success("Job deleted.");
+      fetchTranslations();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete job.");
+    }
+  };
+
   return {
     data: isEmpty ? [] : data,
     isEmpty,
@@ -42,6 +65,8 @@ export function useTranslationList() {
     totalCount: isEmpty ? 0 : totalCount,
     storageUsedMb: 0, // Not implemented in backend yet
     storageTotalMb: 1024,
-    isLoading
+    isLoading,
+    cancelJob,
+    deleteJob
   };
 }

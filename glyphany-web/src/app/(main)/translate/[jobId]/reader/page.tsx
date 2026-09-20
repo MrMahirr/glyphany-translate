@@ -102,6 +102,22 @@ export default function ReaderPage({ params }: { params: Promise<{ jobId: string
     }
   };
 
+  const handleRetranslate = async (originalText: string): Promise<string> => {
+    try {
+      const response = await apiClient.post<{ translatedText: string }>(`/translations/${jobId}/retranslate-block`, {
+        text: originalText,
+        sourceLang: documentData?.sourceLang || 'auto',
+        targetLang: documentData?.targetLang || 'tr',
+      });
+      toast.success("Blok başarıyla tekrar çevrildi!");
+      return response.data.translatedText;
+    } catch (error) {
+      console.error(error);
+      toast.error("Tekrar çeviri başarısız oldu.");
+      throw error;
+    }
+  };
+
   const editingSourceNode = editingNodeId 
     ? documentData.pages.flatMap(p => p.sourceNodes).find(n => n.id === editingNodeId)
     : undefined;
@@ -149,7 +165,9 @@ export default function ReaderPage({ params }: { params: Promise<{ jobId: string
         sourceNode={editingSourceNode}
         targetNode={editingTargetNode}
         onSave={handleSaveNode}
+        onRetranslate={handleRetranslate}
       />
     </div>
   );
 }
+

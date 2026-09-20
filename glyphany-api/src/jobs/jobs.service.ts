@@ -141,6 +141,13 @@ export class JobsService {
     return { success: true };
   }
 
+  async deleteJob(jobId: string, userId: string) {
+    await this.db.query(`DELETE FROM jobs WHERE id = $1 AND user_id = $2`, [jobId, userId]);
+    // NOTE: Should also delete from S3 (original file, output PDF, output JSON) if needed. 
+    // Leaving out S3 deletion for now to keep it simple, but DB record is deleted.
+    return { success: true };
+  }
+
   async getTranslationContent(jobId: string, userId: string) {
     const rows = await this.db.query(`
       SELECT id, original_file_name, target_lang, detected_source_lang, page_count, status, output_json_path, output_pdf_path 
@@ -245,5 +252,59 @@ export class JobsService {
     await this.queue.pushJob('translation_queue', jobData);
 
     return { success: true, message: 'PDF regeneration started' };
+  }
+
+  async retranslateBlock(jobId: string, userId: string, text: string, sourceLang: string, targetLang: string) {
+    // Verify job belongs to user
+    const rows = await this.db.query(
+      `SELECT id FROM jobs WHERE id = $1 AND user_id = $2`,
+      [jobId, userId]
+    );
+    if (rows.length === 0) {
+      throw new NotFoundException(`Job with id ${jobId} not found`);
+    }
+
+    let libreUrl = process.env.LIBRETRANSLATE_URL || 'http://libretranslate:5000/translate';
+    let response;
+    
+    try {
+      response = await fetch(libreUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: text,
+          source: sourceLang?.toLowerCase() || 'auto',
+          target: targetLang?.toLowerCase() || 'tr',
+          format: 'text',
+        }),
+      });
+    } catch (e: any) {
+      // If we are running locally outside Docker, 'libretranslate' host will not resolve.
+      // Fallback to localhost.
+      if (e.code === 'ENOTFOUND' || e.code === 'ECONNREFUSED' || e.cause?.code === 'ENOTFOUND') {
+        libreUrl = 'http://localhost:5000/translate';
+        response = await fetch(libreUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            q: text,
+            source: sourceLang?.toLowerCase() || 'auto',
+            target: targetLang?.toLowerCase() || 'tr',
+            format: 'text',
+          }),
+        });
+      } else {
+        throw e;
+      }
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`LibreTranslate Error ${response.status}: ${errorText}`);
+      throw new Error(`LibreTranslate returned ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json() as { translatedText: string };
+    return { translatedText: data.translatedText };
   }
 }

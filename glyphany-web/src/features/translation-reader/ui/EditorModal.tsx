@@ -10,10 +10,12 @@ interface EditorModalProps {
   sourceNode: DocumentNode | undefined;
   targetNode: DocumentNode | undefined;
   onSave: (nodeId: string, newContent: string) => void;
+  onRetranslate?: (text: string) => Promise<string>;
 }
 
-export function EditorModal({ isOpen, onClose, sourceNode, targetNode, onSave }: EditorModalProps) {
+export function EditorModal({ isOpen, onClose, sourceNode, targetNode, onSave, onRetranslate }: EditorModalProps) {
   const [content, setContent] = useState("");
+  const [isRetranslating, setIsRetranslating] = useState(false);
 
   useEffect(() => {
     if (targetNode) {
@@ -27,6 +29,19 @@ export function EditorModal({ isOpen, onClose, sourceNode, targetNode, onSave }:
     setContent(sourceNode.content);
   };
 
+  const handleRetranslate = async () => {
+    if (!onRetranslate) return;
+    setIsRetranslating(true);
+    try {
+      const newTranslation = await onRetranslate(sourceNode.content);
+      setContent(newTranslation);
+    } catch {
+      // Error handled by parent
+    } finally {
+      setIsRetranslating(false);
+    }
+  };
+
   const handleSave = () => {
     onSave(targetNode.id, content);
     onClose();
@@ -37,7 +52,7 @@ export function EditorModal({ isOpen, onClose, sourceNode, targetNode, onSave }:
       <div className="bg-surface-container-lowest w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-surface-container-low border-b border-surface-container-high">
-          <h3 className="font-label-lg font-bold text-on-surface">Edit Translation Block</h3>
+          <h3 className="font-label-lg font-bold text-on-surface">Çeviri Bloğunu Düzenle</h3>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors">
             <Icon name="close" size={20} />
           </button>
@@ -47,48 +62,62 @@ export function EditorModal({ isOpen, onClose, sourceNode, targetNode, onSave }:
           {/* Source Text */}
           <div>
             <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider font-bold mb-2 block">
-              Original Text
+              Orijinal Metin
             </span>
-            <div className="p-4 bg-surface-container-low rounded-xl text-on-surface-variant font-serif text-[15px] leading-relaxed">
+            <div className="p-4 bg-surface-container-low rounded-xl text-on-surface-variant font-serif text-[15px] leading-relaxed select-all">
               {sourceNode.content}
             </div>
           </div>
 
           {/* Target Text (Editable) */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider font-bold block">
-                Translated Text
-              </span>
-              <button 
-                onClick={handleKeepOriginal}
-                className="text-xs font-label-caps uppercase text-primary hover:text-primary-fixed transition-colors flex items-center gap-1 bg-primary-container px-2 py-1 rounded"
-              >
-                <Icon name="undo" size={14} /> Keep Original
-              </button>
-            </div>
+            <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider font-bold mb-2 block">
+              Çevrilmiş Metin
+            </span>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="w-full h-32 p-4 bg-surface-container-lowest border border-outline rounded-xl text-on-surface font-serif text-[15px] leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-              placeholder="Enter translated text here..."
+              placeholder="Çevrilmiş metni buraya yazın..."
             />
+          </div>
+
+          {/* Action Buttons Row */}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={handleKeepOriginal}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-surface-container-low border border-outline hover:bg-surface-container transition-colors cursor-pointer"
+            >
+              <Icon name="history" size={18} className="text-tertiary" />
+              <span className="font-label-md font-bold text-on-surface">Orijinalini Koru</span>
+            </button>
+
+            <button 
+              onClick={handleRetranslate}
+              disabled={isRetranslating || !onRetranslate}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-tertiary-container text-on-tertiary-container border border-tertiary/20 hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+            >
+              <Icon name="translate" size={18} className={isRetranslating ? "animate-spin" : ""} />
+              <span className="font-label-md font-bold">
+                {isRetranslating ? "Çevriliyor..." : "Tekrar Çevir"}
+              </span>
+            </button>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Footer Actions */}
         <div className="px-6 py-4 bg-surface-container-low flex justify-end gap-3 border-t border-surface-container-high">
           <button 
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-on-surface-variant font-label-md font-bold hover:bg-surface-container transition-colors"
           >
-            Cancel
+            İptal
           </button>
           <button 
             onClick={handleSave}
             className="px-4 py-2 rounded-xl bg-primary text-on-primary font-label-md font-bold hover:opacity-90 shadow-sm transition-opacity"
           >
-            Save Changes
+            Değişiklikleri Kaydet
           </button>
         </div>
       </div>
