@@ -83,12 +83,55 @@ export class AuthService implements IAuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    // Stateless JWT, client is expected to delete the token.
-    // In a stateful system we could blacklist the token here.
-    return;
+    // JWT stateless olduğu için backend'de yapılacak bir şey yok.
+    // İleride Redis blacklist eklenebilir.
   }
 
-  private generateTokens(user: any) {
+  async validateGoogleUser(profile: any): Promise<any> {
+    // 1. Check if user exists by email or google_id
+    let users = await this.db.query(
+      'SELECT * FROM users WHERE email = $1 OR google_id = $2',
+      [profile.email, profile.googleId]
+    );
+
+    let user = users.length > 0 ? users[0] : null;
+
+    if (!user) {
+      // 2. If not exists, register new user
+      const result = await this.db.query(
+        `INSERT INTO users (
+          email, 
+          full_name, 
+          avatar_url, 
+          auth_provider, 
+          google_id, 
+          password_hash
+        ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [
+          profile.email, 
+          `${profile.firstName} ${profile.lastName}`, 
+          profile.picture, 
+          'google', 
+          profile.googleId,
+          null // No password for Google users
+        ]
+      );
+      user = result[0];
+    } else {
+      // If user exists but doesn't have google_id, we can optionally link it
+      if (!user.google_id) {
+        await this.db.query(
+          'UPDATE users SET google_id = $1, auth_provider = $2 WHERE id = $3',
+          [profile.googleId, 'google', user.id]
+        );
+      }
+    }
+
+    // 3. Return user (this will be passed to JWT strategy or AuthController)
+    return user;
+  }
+
+  public generateTokens(user: any) {
     const payload = { email: user.email, sub: user.id, role: user.role };
     return {
       accessToken: this.jwtService.sign(payload),

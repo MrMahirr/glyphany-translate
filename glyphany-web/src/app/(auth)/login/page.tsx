@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BRAND } from "@/shared/config/brand";
 import { Icon } from "@/shared/ui/Icon";
 import { Divider } from "@/shared/ui/Divider";
@@ -8,6 +9,8 @@ import { AuthTabs } from "@/features/auth/ui/AuthTabs";
 import { LoginForm } from "@/features/auth/ui/LoginForm";
 import { RegisterForm } from "@/features/auth/ui/RegisterForm";
 import { SocialAuthButtons } from "@/features/auth/ui/SocialAuthButtons";
+import { getMe } from "@/features/auth/api/authApi";
+import { useAuthStore } from "@/features/auth/store/authStore";
 
 type AuthTab = "login" | "signup";
 
@@ -19,6 +22,27 @@ type AuthTab = "login" | "signup";
  */
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<AuthTab>("login");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      localStorage.setItem("auth_token", token);
+      
+      // Fetch user profile immediately
+      getMe()
+        .then((user) => {
+          setAuth(user, token);
+          router.push("/");
+        })
+        .catch(() => {
+          // If token is invalid or backend fails
+          localStorage.removeItem("auth_token");
+        });
+    }
+  }, [searchParams, router, setAuth]);
 
   return (
     <div className="relative w-full min-h-screen flex items-center justify-center px-4 py-10 sm:px-6 lg:px-8 overflow-hidden bg-surface">

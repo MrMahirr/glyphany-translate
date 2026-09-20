@@ -8,8 +8,7 @@ import React from "react";
  */
 export function SocialAuthButtons() {
   const handleGoogleLogin = () => {
-    // TODO: Implement Google OAuth redirect
-    console.log("Google OAuth");
+    window.location.href = "http://localhost:3100/api/v1/auth/google";
   };
 
   const handleGitHubLogin = () => {

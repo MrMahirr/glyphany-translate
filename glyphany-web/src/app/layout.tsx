@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 };
 
 import { ToastProvider } from "@/shared/providers/ToastProvider";
+import { AuthProvider } from "@/shared/providers/AuthProvider";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -27,8 +28,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
-        {children}
-        <ToastProvider />
+        <AuthProvider>
+          {children}
+          <ToastProvider />
+        </AuthProvider>
       </body>
     </html>
   );

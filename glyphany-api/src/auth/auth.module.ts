@@ -5,6 +5,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './services/auth.service';
 import { PasswordHasherService } from './services/password-hasher.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       useClass: PasswordHasherService,
     },
     JwtStrategy,
+    GoogleStrategy,
   ],
   exports: ['IAuthService', PassportModule, JwtModule],
 })

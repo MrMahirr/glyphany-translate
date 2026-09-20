@@ -4,4 +4,5 @@ export interface IAuthService {
   refreshToken(token: string): Promise<any>;
   getProfile(userId: string): Promise<any>;
   logout(userId: string): Promise<void>;
+  validateGoogleUser(profile: any): Promise<any>;
 }
