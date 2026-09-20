@@ -11,6 +11,99 @@ DetectorFactory.seed = 0
 
 logger = logging.getLogger("worker.pdf")
 
+def regenerate_pdf(
+    job_id: str,
+    input_path: str,
+    json_path: str,
+    output_pdf_path: str
+):
+    """
+    Reads the original PDF and the updated JSON, and redraws the boxes and text
+    without running the LLM translation pipeline.
+    """
+    logger.info(f"Job {job_id}: Regenerating PDF {input_path}")
+    
+    doc = fitz.open(input_path)
+    page_count = len(doc)
+    
+    out_doc = fitz.open()
+    
+    with open(json_path, 'r', encoding='utf-8') as f:
+        all_translated_pages = json.load(f)
+
+    for page_num in range(page_count):
+        logger.info(f"Job {job_id}: Regenerating page {page_num + 1}/{page_count}")
+        page = doc[page_num]
+        
+        out_doc.insert_pdf(doc, from_page=page_num, to_page=page_num)
+        out_page = out_doc[page_num]
+        
+        # We need the layout info again from the original PDF
+        dict_data = page.get_text("dict")
+        blocks = dict_data.get("blocks", [])
+        
+        text_items = []
+        for b in blocks:
+            if b.get("type") == 0: 
+                bbox = fitz.Rect(b["bbox"])
+                sizes = []
+                colors = []
+                full_text = ""
+                
+                for line in b.get("lines", []):
+                    for span in line.get("spans", []):
+                        sizes.append(span.get("size", 11.0))
+                        colors.append(span.get("color", 0))
+                        full_text += span.get("text", "") + " "
+                
+                full_text = full_text.strip()
+                if not full_text: 
+                    continue
+                
+                dom_size = Counter(sizes).most_common(1)[0][0] if sizes else 11.0
+                dom_color_int = Counter(colors).most_common(1)[0][0] if colors else 0
+                
+                r = ((dom_color_int >> 16) & 255) / 255.0
+                g = ((dom_color_int >> 8) & 255) / 255.0
+                b_val = (dom_color_int & 255) / 255.0
+                dom_color = (r, g, b_val)
+                
+                text_items.append({
+                    "bbox": bbox,
+                    "size": dom_size,
+                    "color": dom_color
+                })
+        
+        page_data = next((p for p in all_translated_pages if p["page"] == page_num + 1), None)
+        if not page_data:
+            continue
+            
+        translated_blocks = page_data.get("translated_blocks", [])
+        
+        for item, translated_text in zip(text_items, translated_blocks):
+            bbox = item["bbox"]
+            orig_size = item["size"]
+            orig_color = item["color"]
+            
+            out_page.draw_rect(bbox, color=(1, 1, 1), fill=(1, 1, 1))
+            best_size = get_best_fontsize(translated_text, bbox, orig_size, fontname="helv")
+            
+            out_page.insert_textbox(
+                bbox,
+                translated_text,
+                fontsize=best_size,
+                fontname="helv",
+                color=orig_color,
+                align=0
+            )
+
+    os.makedirs(os.path.dirname(output_pdf_path), exist_ok=True)
+    out_doc.save(output_pdf_path)
+    out_doc.close()
+    doc.close()
+    
+    return page_count
+
 def detect_document_language(doc: fitz.Document, max_pages: int = 2) -> str:
     """
     Detect the source language of the document by sampling the first few pages.

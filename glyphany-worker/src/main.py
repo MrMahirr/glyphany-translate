@@ -66,6 +66,8 @@ def main():
                         source_pdf_path = job_row["source_pdf_path"]
                         target_lang = job_row["target_lang"] or "TR"
                         
+                        is_regeneration = job_data.get("is_regeneration", False)
+                        
                         # Paths
                         s3_input_key = source_pdf_path
                         local_input_path = f"/tmp/{job_id}_input.pdf"
@@ -79,33 +81,53 @@ def main():
                         update_job_progress(job_id, percentage=10, current_step="downloading_file", estimated_time=115)
                         download_file(s3_input_key, local_input_path)
                         
-                        # Step: Processing and Translating
-                        # By default we pass 'auto' -> 'TR' since we haven't fetched settings
-                        page_count, detected_source_lang = process_pdf(
-                            job_id=job_id,
-                            input_path=local_input_path,
-                            output_pdf_path=local_output_pdf,
-                            output_json_path=local_output_json,
-                            source_lang="auto",
-                            target_lang=target_lang
-                        )
+                        if is_regeneration:
+                            # Step: Download the updated JSON
+                            download_file(s3_output_json_key, local_output_json)
+                            # Step: Regenerate PDF
+                            from src.services.pdf_processor import regenerate_pdf
+                            page_count = regenerate_pdf(
+                                job_id=job_id,
+                                input_path=local_input_path,
+                                json_path=local_output_json,
+                                output_pdf_path=local_output_pdf
+                            )
+                            detected_source_lang = "auto" # Keep it unchanged
+                        else:
+                            # Step: Processing and Translating
+                            page_count, detected_source_lang = process_pdf(
+                                job_id=job_id,
+                                input_path=local_input_path,
+                                output_pdf_path=local_output_pdf,
+                                output_json_path=local_output_json,
+                                source_lang="auto",
+                                target_lang=target_lang
+                            )
                         
                         # Step: Uploading to S3
                         update_job_progress(job_id, percentage=90, current_step="uploading_results", estimated_time=10)
                         upload_file(local_output_pdf, s3_output_pdf_key)
-                        upload_file(local_output_json, s3_output_json_key)
+                        
+                        # Only upload JSON if it's not a regeneration (regeneration doesn't modify the json)
+                        if not is_regeneration:
+                            upload_file(local_output_json, s3_output_json_key)
                         
                         # Step: Finalizing
                         update_job_progress(job_id, percentage=95, current_step="finalizing", estimated_time=2)
                         
                         # status -> completed
-                        update_job_completed(
-                            job_id, 
-                            output_pdf_path=s3_output_pdf_key,
-                            output_json_path=s3_output_json_key,
-                            detected_source_lang=detected_source_lang,
-                            page_count=page_count
-                        )
+                        if is_regeneration:
+                            update_job_status(job_id, "completed")
+                            update_job_progress(job_id, percentage=100, current_step="completed", estimated_time=0)
+                        else:
+                            update_job_completed(
+                                job_id, 
+                                output_pdf_path=s3_output_pdf_key,
+                                output_json_path=s3_output_json_key,
+                                detected_source_lang=detected_source_lang,
+                                page_count=page_count
+                            )
+                        
                         logger.info(f"Job {job_id}: Processing completed successfully.")
                         
                         # Cleanup local files

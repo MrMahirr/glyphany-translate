@@ -12,6 +12,7 @@ interface DocumentPaneProps {
   hoveredNodeId: string | null;
   onNodeHover: (nodeId: string | null) => void;
   title: string;
+  onNodeClick?: (nodeId: string) => void;
 }
 
 export function DocumentPane({
@@ -20,7 +21,8 @@ export function DocumentPane({
   nodes,
   hoveredNodeId,
   onNodeHover,
-  title
+  title,
+  onNodeClick
 }: DocumentPaneProps) {
   const isTarget = paneType === "target";
 
@@ -68,6 +70,7 @@ export function DocumentPane({
             isHovered={hoveredNodeId === node.id}
             onHover={() => onNodeHover(node.id)}
             onLeave={() => onNodeHover(null)}
+            onClick={() => onNodeClick?.(node.id)}
           />
         ))}
       </div>
@@ -80,11 +83,13 @@ function NodeRenderer({
   isHovered,
   onHover,
   onLeave,
+  onClick
 }: {
   node: DocumentNode;
   isHovered: boolean;
   onHover: () => void;
   onLeave: () => void;
+  onClick?: () => void;
 }) {
   
   if (node.type === "heading") {
@@ -96,6 +101,7 @@ function NodeRenderer({
         )}
         onMouseEnter={onHover}
         onMouseLeave={onLeave}
+        onClick={onClick}
       >
         <span className="block font-sans font-label-caps text-label-caps text-primary tracking-widest uppercase mb-1">
           {node.metadata?.subtitle}
@@ -114,6 +120,7 @@ function NodeRenderer({
         )}
         onMouseEnter={onHover}
         onMouseLeave={onLeave}
+        onClick={onClick}
         dangerouslySetInnerHTML={{ __html: node.content }}
       />
     );
@@ -128,6 +135,7 @@ function NodeRenderer({
         )}
         onMouseEnter={onHover}
         onMouseLeave={onLeave}
+        onClick={onClick}
       >
         <span className="font-serif italic text-on-surface" dangerouslySetInnerHTML={{ __html: node.content }} />
         {node.metadata?.caption && (
@@ -141,7 +149,7 @@ function NodeRenderer({
 
   if (node.type === "note") {
     return (
-      <p className="font-sans text-[12px] text-on-surface-variant mt-2.5 leading-normal" dangerouslySetInnerHTML={{ __html: node.content }} />
+      <p className="font-sans text-[12px] text-on-surface-variant mt-2.5 leading-normal" dangerouslySetInnerHTML={{ __html: node.content }} onClick={onClick} />
     );
   }
 
@@ -154,6 +162,7 @@ function NodeRenderer({
       )}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
+      onClick={onClick}
     >
       <div className="flex items-center justify-between mb-4">
         <span className="font-sans font-label-caps text-label-caps uppercase text-primary tracking-wider font-bold">

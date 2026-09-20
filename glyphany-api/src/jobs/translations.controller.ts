@@ -42,4 +42,13 @@ export class TranslationsController {
   ) {
     return this.jobsService.getTranslationContent(id, user.id);
   }
+
+  @Post(':id/regenerate')
+  async updateAndRegenerate(
+    @Param('id') id: string,
+    @Body('pages') pages: any[],
+    @CurrentUser() user: any,
+  ) {
+    return this.jobsService.updateAndRegenerate(id, user.id, pages);
+  }
 }

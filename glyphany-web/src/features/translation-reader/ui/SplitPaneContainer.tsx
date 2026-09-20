@@ -14,6 +14,7 @@ interface SplitPaneContainerProps {
   targetTitle: string;
   hoveredNodeId: string | null;
   onNodeHover: (nodeId: string | null) => void;
+  onNodeClick?: (nodeId: string) => void;
 }
 
 export function SplitPaneContainer({
@@ -24,7 +25,8 @@ export function SplitPaneContainer({
   sourceTitle,
   targetTitle,
   hoveredNodeId,
-  onNodeHover
+  onNodeHover,
+  onNodeClick
 }: SplitPaneContainerProps) {
   const showSource = viewMode === "split" || viewMode === "source";
   const showTarget = viewMode === "split" || viewMode === "target";
@@ -58,6 +60,7 @@ export function SplitPaneContainer({
             nodes={pageData.targetNodes}
             hoveredNodeId={hoveredNodeId}
             onNodeHover={onNodeHover}
+            onNodeClick={onNodeClick}
           />
         )}
       </div>

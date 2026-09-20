@@ -198,4 +198,52 @@ export class JobsService {
       throw new NotFoundException(`Could not read translation content from storage`);
     }
   }
+
+  async updateAndRegenerate(jobId: string, userId: string, pages: any[]) {
+    // 1. Fetch job
+    const rows = await this.db.query(`
+      SELECT id, status, output_json_path, source_pdf_path, target_lang 
+      FROM jobs WHERE id = $1 AND user_id = $2
+    `, [jobId, userId]);
+
+    if (rows.length === 0) {
+      throw new NotFoundException(`Job with id ${jobId} not found`);
+    }
+
+    const job = rows[0];
+    if (job.status !== 'completed' || !job.output_json_path) {
+      throw new Error(`Only completed jobs can be regenerated`);
+    }
+
+    // 2. Format frontend pages back to worker raw JSON
+    const rawPages = pages.map(p => {
+      return {
+        page: p.pageNumber,
+        original_blocks: p.sourceNodes.map((n: any) => n.content),
+        translated_blocks: p.targetNodes.map((n: any) => n.content)
+      };
+    });
+
+    // 3. Save JSON to MinIO
+    const jsonBuffer = Buffer.from(JSON.stringify(rawPages, null, 2), 'utf-8');
+    await this.storage.uploadFile(this.bucketName, job.output_json_path, jsonBuffer, 'application/json');
+
+    // 4. Update status to processing
+    await this.db.query(`
+      UPDATE jobs 
+      SET status = 'processing', current_step = 'regenerating'
+      WHERE id = $1
+    `, [jobId]);
+
+    // 5. Queue regeneration task
+    const jobData = {
+      job_id: job.id,
+      s3_path: job.source_pdf_path,
+      target_lang: job.target_lang,
+      is_regeneration: true
+    };
+    await this.queue.pushJob('translation_queue', jobData);
+
+    return { success: true, message: 'PDF regeneration started' };
+  }
 }
