@@ -9,15 +9,31 @@ export interface LanguageSelectorProps {
 }
 
 const LANGUAGES = [
-  { code: "es", label: "Spanish (Español)" },
-  { code: "de", label: "German (Deutsch)" },
-  { code: "ja", label: "Japanese (日本語)" },
+  { code: "ar", label: "Arabic (العربية)" },
+  { code: "zh", label: "Chinese (中文)" },
+  { code: "cs", label: "Czech (Čeština)" },
+  { code: "da", label: "Danish (Dansk)" },
+  { code: "nl", label: "Dutch (Nederlands)" },
+  { code: "en", label: "English" },
+  { code: "fi", label: "Finnish (Suomi)" },
   { code: "fr", label: "French (Français)" },
-  { code: "zh", label: "Chinese (Simplified)" },
-  { code: "pt", label: "Portuguese (Português)" },
+  { code: "de", label: "German (Deutsch)" },
+  { code: "el", label: "Greek (Ελληνικά)" },
+  { code: "hi", label: "Hindi (हिन्दी)" },
+  { code: "hu", label: "Hungarian (Magyar)" },
+  { code: "id", label: "Indonesian (Bahasa Indonesia)" },
   { code: "it", label: "Italian (Italiano)" },
+  { code: "ja", label: "Japanese (日本語)" },
   { code: "ko", label: "Korean (한국어)" },
+  { code: "pl", label: "Polish (Polski)" },
+  { code: "pt", label: "Portuguese (Português)" },
+  { code: "ro", label: "Romanian (Română)" },
+  { code: "ru", label: "Russian (Русский)" },
+  { code: "es", label: "Spanish (Español)" },
+  { code: "sv", label: "Swedish (Svenska)" },
   { code: "tr", label: "Turkish (Türkçe)" },
+  { code: "uk", label: "Ukrainian (Українська)" },
+  { code: "vi", label: "Vietnamese (Tiếng Việt)" },
 ];
 
 /**

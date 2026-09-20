@@ -50,8 +50,22 @@ def run_translation_pipeline(
             
         except Exception as e:
             logger.error(f"Job {job_id}: Translation failed for block {i+1} with {engine_type}: {e}")
-            # Fallback to original text on error
-            translated_blocks.append(block)
+            if engine_type == "libre":
+                try:
+                    logger.info(f"Job {job_id}: Falling back to ollama for block {i+1}...")
+                    translated_text = ollama_engine.translate(
+                        text=block, 
+                        source_lang=source_lang, 
+                        target_lang=target_lang,
+                        context=context
+                    )
+                    translated_blocks.append(translated_text)
+                except Exception as fallback_err:
+                    logger.error(f"Job {job_id}: Fallback translation failed for block {i+1}: {fallback_err}")
+                    translated_blocks.append(block)
+            else:
+                # Fallback to original text on error
+                translated_blocks.append(block)
             
         # Update progress
         if total_blocks > 0:

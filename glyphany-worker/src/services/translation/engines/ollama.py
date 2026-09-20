@@ -11,9 +11,11 @@ class OllamaEngine(TranslationEngine):
         self.model = model
 
     def translate(self, text: str, source_lang: str, target_lang: str, context: str = None) -> str:
-        prompt = f"Translate the following text from {source_lang} to {target_lang}. Provide ONLY the translation, no extra text, no markdown backticks, no explanations.\n\nTEXT:\n{text}"
+        source_desc = source_lang if source_lang and source_lang.lower() != "auto" else "its original language"
+        
+        prompt = f"Translate the following text from {source_desc} to {target_lang}. Provide ONLY the translation, no extra text, no markdown backticks, no explanations.\n\nTEXT:\n{text}"
         if context:
-            prompt = f"Translate the following text from {source_lang} to {target_lang}. Use the following context to understand the domain and terminology, but DO NOT translate the context.\n\nCONTEXT:\n{context}\n\nTEXT:\n{text}\n\nProvide ONLY the translation, no extra text."
+            prompt = f"Translate the following text from {source_desc} to {target_lang}. Use the following context to understand the domain and terminology, but DO NOT translate the context.\n\nCONTEXT:\n{context}\n\nTEXT:\n{text}\n\nProvide ONLY the translation, no extra text."
             
         return self.generate(prompt)
 

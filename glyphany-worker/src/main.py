@@ -86,7 +86,7 @@ def main():
                             input_path=local_input_path,
                             output_pdf_path=local_output_pdf,
                             output_json_path=local_output_json,
-                            source_lang="EN", # Should ideally come from job request
+                            source_lang="auto",
                             target_lang=target_lang
                         )
                         

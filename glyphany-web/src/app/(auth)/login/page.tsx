@@ -20,7 +20,9 @@ type AuthTab = "login" | "signup";
  * floating MathML badge, social auth, enterprise SSO, and trust badges.
  * Referans: plan/frontend-desing/login.html + login.png
  */
-export default function LoginPage() {
+import { Suspense } from "react";
+
+function LoginPageContent() {
   const [activeTab, setActiveTab] = useState<AuthTab>("login");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -151,6 +153,14 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
 

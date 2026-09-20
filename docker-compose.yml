@@ -43,7 +43,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - LT_LOAD_ONLY=en,tr,de
+      - LT_UPDATE_MODELS=true
     volumes:
       - libretranslate_data:/home/libretranslate/.local
     restart: unless-stopped
